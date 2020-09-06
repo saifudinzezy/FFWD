@@ -1,112 +1,92 @@
 function main() {
     const baseUrl = "https://web-server-book-dicoding.appspot.com";
 
-    const getBook = () => {
-        //membuat instance dari XMLHttpRequest
-        const xhr = new XMLHttpRequest();
-
-        //menetapkan callback jika response sukses dan error
-        xhr.onload = function() {
-            //get json from server
-            const responseJson = JSON.parse(this.responseText);
-            //cek json error or succes
+    //async -> await
+    const getBook = async() => {
+        try {
+            //fungsi fetch() akan mengembalikan promise resolve jika request berhasil dilakukan.
+            const response = await fetch(`${baseUrl}/list`);
+            //ambil promise json, ubah nilai response menjadi JSON
+            const responseJson = await response.json();
+            //cek error
             if (responseJson.error) {
                 showResponseMessage(responseJson.message);
             } else {
                 renderAllBooks(responseJson.books);
             }
+        } catch (error) {
+            showResponseMessage(error);
         }
-
-        xhr.onerror = () => {
-            showResponseMessage();
-        }
-
-        // Membuat GET request dan menetapkan target URL
-        xhr.open("GET", `${baseUrl}/list`);
-        // Mengirimkan request
-        xhr.send();
     };
 
 
-    const insertBook = (book) => {
-        // Membuat instance dari XMLHttpRequest
-        const xhr = new XMLHttpRequest();
+    const insertBook = async(book) => {
+        try {
+            const options = {
+                method: "POST",
+                // properti
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Auth-Token": "12345"
+                },
+                // ubah string ke json
+                body: JSON.stringify(book)
+            }
 
-        //menetapkan callback jika response sukses dan error
-        xhr.onload = function() {
-            const responseJson = JSON.parse(this.responseText);
+            const response = await fetch(`${baseUrl}/add`, options)
+                //ubah response ke json
+            const responseJson = await response.json();
+            showResponseMessage(responseJson.message);
+            getBook();
+        } catch (error) {
+            showResponseMessage(error)
+        }
+    };
+
+    const updateBook = async(book) => {
+        try {
+            const options = {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Auth-Token": "12345"
+                },
+                body: JSON.stringify(book)
+            }
+
+            //update berdasarkan id
+            const response = await fetch(`${baseUrl}/edit/${book.id}`, options);
+            //get json, ubah ke json
+            const responseJson = await response.json();
+
             showResponseMessage(responseJson.message);
             //reload data baru
             getBook();
+        } catch (error) {
+            showResponseMessage(error);
         }
-
-        xhr.onerror = () => {
-            showResponseMessage();
-        }
-
-        // Membuat POST request dan menetapkan target URL
-        xhr.open("POST", `${baseUrl}/add`);
-
-        // Mementapkan properti Content-Type dan X-Auth-Token pada Header request
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.setRequestHeader("X-Auth-Token", "12345");
-
-        // Mengirimkan request dan menyisipkan JSON.stringify(book) pada body
-        xhr.send(JSON.stringify(book));
     };
 
-    const updateBook = (book) => {
-        // Membuat instance dari XMLHttpRequest
-        const xhr = new XMLHttpRequest();
+    const removeBook = async(bookId) => {
+        try {
+            const options = {
+                method: "DELETE",
+                headers: {
+                    "X-Auth-Token": "12345"
+                }
+            }
 
-        //menetapkan callback jika response sukses dan error
-        xhr.onload = function() {
-            const responseJson = JSON.parse(this.responseText);
+            //update berdasarkan id
+            const response = await fetch(`${baseUrl}/delete/${bookId}`, options);
+            //get json, ubah ke json
+            const responseJson = await response.json();
+
             showResponseMessage(responseJson.message);
-            //reload data
+            //reload data baru
             getBook();
+        } catch (error) {
+            showResponseMessage(error);
         }
-
-        xhr.onerror = function() {
-            showResponseMessage();
-        }
-
-        // Membuat PUT request dan menetapkan target URL
-        xhr.open("PUT", `${baseUrl}/edit/${book.id}`);
-
-        // Mementapkan properti Content-Type dan X-Auth-Token pada Header request
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.setRequestHeader("X-Auth-Token", "12345");
-
-        // Mengirimkan request dan menyisipkan JSON.stringify(book) pada body
-        xhr.send(JSON.stringify(book));
-    };
-
-    const removeBook = (bookId) => {
-        // Membuat instance dari XMLHttpRequest
-        const xhr = new XMLHttpRequest();
-
-        //menetapkan callback jika response sukses dan error
-        xhr.onload = function() {
-            const responseJson = JSON.parse(this.responseText);
-            showResponseMessage(responseJson.message);
-            //reload data
-            getBook();
-        }
-
-        xhr.onerror = function() {
-            showResponseMessage();
-        }
-
-        // Membuat DELETE request dan menetapkan target URL
-        xhr.open("DELETE", `${baseUrl}/delete/${bookId}`);
-
-        // Mementapkan properti Content-Type dan X-Auth-Token pada Header request
-        xhr.setRequestHeader("X-Auth-Token", "12345");
-
-        // Mengirimkan request
-        xhr.send();
-
     };
 
 
